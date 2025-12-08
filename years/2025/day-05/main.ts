@@ -1,19 +1,27 @@
 import * as fs from "fs";
 
-type Range = {
+export type Range = {
 	start: number
 	end: number
 }
 
 function main() {
 	const { ranges, ids } = getPuzzleInput("years/2025/day-05/puzzle-input.txt");
+	const simplifiedRanges = simplyfyRanges(ranges);
 	let spoiledCounter = 0;
 	for (const id of ids) {
-		if (checkInRanges(id, ranges)) {
+		if (checkInRanges(id, simplifiedRanges)) {
 			spoiledCounter++;
 		}
 	}
 	console.log(`Number of spoiled items: ${spoiledCounter}`);
+	//console.log(simplifiedRanges);
+
+	// part2
+	const numPossibleFreshIngredients = calcPossibleFreshIngredients(simplifiedRanges);
+	const numNonSimplified = calcPossibleFreshIngredients(ranges);
+	console.log(`number of possible fresh ingredients: ${numPossibleFreshIngredients}`);
+	console.log(`number of possible fresh ingredients (non simplified): ${numNonSimplified}`);
 }
 
 function getPuzzleInput(filePath: string) {
@@ -68,6 +76,48 @@ function numberInRange(n: number, range: Range) {
 		return true;
 	}
 	return false;
+}
+
+export function calcPossibleFreshIngredients(ranges: Range[]) {
+	//let freshIngredients: number[] = [];
+	let numFreshIngredients = 0;
+	for (const range of ranges) {
+		numFreshIngredients += range.end - range.start + 1;
+	}
+	return numFreshIngredients;
+}
+
+export function simplyfyRanges(ranges: Range[]) {
+	ranges = ranges.slice();
+	let simplifiedRanges: Range[] = []
+	while (ranges.length > 0) {
+		let currentRange = ranges.pop();
+		if (!currentRange) {
+			throw (EvalError("Something went wrong, ranges loop did not finish properly. Should never be printed!"));
+		}
+		console.log(`simplyfying range ${currentRange.start}-${currentRange.end}`);
+		for (let i = 0; i < ranges.length; i++) {
+			if (!rangesTouch(currentRange, ranges[i])) {
+				continue;
+			}
+			currentRange = mergeRanges(currentRange, ranges[i]);
+			ranges.splice(i, 1);
+			i--;
+		}
+		simplifiedRanges.push(currentRange);
+	}
+	return simplifiedRanges;
+}
+
+export function rangesTouch(range1: Range, range2: Range): boolean {
+	return Math.max(range1.start, range2.start) <= Math.min(range1.end, range2.end) + 1;
+}
+
+export function mergeRanges(range1: Range, range2: Range): Range {
+	console.log("merging ranges");
+	const mergedStart = Math.min(range1.start, range2.start);
+	const mergedEnd = Math.max(range1.end, range2.end);
+	return { start: mergedStart, end: mergedEnd };
 }
 
 main();
