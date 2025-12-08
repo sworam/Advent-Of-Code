@@ -88,24 +88,29 @@ export function calcPossibleFreshIngredients(ranges: Range[]) {
 }
 
 export function simplyfyRanges(ranges: Range[]) {
-	ranges = ranges.slice();
-	let simplifiedRanges: Range[] = []
-	while (ranges.length > 0) {
-		let currentRange = ranges.pop();
-		if (!currentRange) {
-			throw (EvalError("Something went wrong, ranges loop did not finish properly. Should never be printed!"));
-		}
-		console.log(`simplyfying range ${currentRange.start}-${currentRange.end}`);
-		for (let i = 0; i < ranges.length; i++) {
-			if (!rangesTouch(currentRange, ranges[i])) {
-				continue;
-			}
-			currentRange = mergeRanges(currentRange, ranges[i]);
-			ranges.splice(i, 1);
-			i--;
-		}
-		simplifiedRanges.push(currentRange);
+	if (ranges.length === 0) {
+		return [];
 	}
+
+	// sort ragnes based on start
+	const sortedRanges = ranges.slice().sort((a, b) => a.start - b.start);
+	const simplifiedRanges: Range[] = [];
+
+	let currentMergedRange = sortedRanges[0];
+
+	for (let i = 1; i < sortedRanges.length; i++) {
+		const nextRange = sortedRanges[i];
+
+		if (nextRange.start <= currentMergedRange.end + 1) {
+			currentMergedRange.end = Math.max(currentMergedRange.end, nextRange.end);
+		} else {
+			simplifiedRanges.push(currentMergedRange);
+			currentMergedRange = nextRange;
+		}
+	}
+
+	// push last range
+	simplifiedRanges.push(currentMergedRange);
 	return simplifiedRanges;
 }
 

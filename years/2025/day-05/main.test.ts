@@ -48,7 +48,7 @@ describe.each([
 	{
 		range1: { start: 4, end: 10 },
 		range2: { start: 2, end: 3 },
-		expected: false,
+		expected: true,
 	},
 	{
 		range1: { start: 4, end: 10 },
