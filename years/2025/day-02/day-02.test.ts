@@ -45,6 +45,6 @@ describe.each([
 ])("calcInvalidIDs($start, $end)", ({ start, end, expected }) => {
 	test(`Expected: ${expected}`, () => {
 		const actual = calcInvalidIDs(start, end);
-		expect(actual).toEqual(expected);
+		expect(actual.invalidIDs).toEqual(expected);
 	});
 });
