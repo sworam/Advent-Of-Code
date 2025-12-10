@@ -10,11 +10,14 @@ function main() {
 	console.log("Startign Solution for Day 07 of Advent of Code!");
 	const map: string[] = getMap("years/2025/day-07/puzzle-input.txt");
 	const startingCoord: Coord = findStart(map);
+	const cache: Record<string, number> = {};
+	const timelineCount = calcTimelines(startingCoord, map, cache);
 	const splitCoords: Set<Coord> = startBeam(startingCoord, map);
 
 	console.log(splitCoords);
 	console.log(`amount of splits: ${splitCoords.size}`);
 	printMap(map);
+	console.log(`timelineCount: ${timelineCount}`);
 }
 
 function getMap(filePath: string) {
@@ -54,6 +57,32 @@ function startBeam(coord: Coord, map: string[]): Set<Coord> {
 		map[nextY] = map[nextY].slice(0, coord.x) + "|" + map[nextY].slice(coord.x + 1);
 		return startBeam(nextCoord, map);
 	}
+}
+
+function calcTimelines(start: Coord, map: string[], cache: Record<string, number>): number {
+	const key = `${start.x},${start.y}`;
+	if (cache[key] !== undefined) {
+		return cache[key];
+	}
+
+	if (start.y >= map.length - 1) {
+		cache[key] = 1;
+		return 1;
+	}
+
+	const currentChar = getChar(map, start);
+	let result = 0;
+
+	if (currentChar === ".") {
+		result = calcTimelines({ x: start.x, y: start.y + 1 }, map, cache);
+	} else {
+		// is split
+		const left = calcTimelines({ x: start.x - 1, y: start.y + 1 }, map, cache);
+		const right = calcTimelines({ x: start.x + 1, y: start.y + 1 }, map, cache);
+		result = left + right;
+	}
+	cache[key] = result;
+	return result;
 }
 
 function getChar(map: string[], coord: Coord) {
