@@ -1,7 +1,7 @@
 import * as fs from "fs"
 
 function main() {
-	console.log("Startign Solution for Day 02 of Advant of Code!");
+	console.log("Startign Solution for Day 02 of Advent of Code!");
 	const ranges = getRanges("years/2025/day-02/puzzle-input.txt");
 	let invalidsSummed = 0;
 	let invalidId2Summed = 0;
@@ -96,5 +96,6 @@ function checkItemsEqual(array: any[]) {
 	return true;
 }
 
-
-main();
+if (import.meta.main) {
+	main();
+}

@@ -6,6 +6,7 @@ export type Range = {
 }
 
 function main() {
+	console.log("Startign Solution for Day 05 of Advent of Code!");
 	const { ranges, ids } = getPuzzleInput("years/2025/day-05/puzzle-input.txt");
 	const simplifiedRanges = simplyfyRanges(ranges);
 	let spoiledCounter = 0;
@@ -119,10 +120,11 @@ export function rangesTouch(range1: Range, range2: Range): boolean {
 }
 
 export function mergeRanges(range1: Range, range2: Range): Range {
-	console.log("merging ranges");
 	const mergedStart = Math.min(range1.start, range2.start);
 	const mergedEnd = Math.max(range1.end, range2.end);
 	return { start: mergedStart, end: mergedEnd };
 }
 
-main();
+if (import.meta.main) {
+	main();
+}

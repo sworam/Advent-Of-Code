@@ -91,4 +91,6 @@ function countRolls(neighbors: string[]): number {
 	return rollCount;
 }
 
-main();
+if (import.meta.main) {
+	main();
+}

@@ -83,4 +83,6 @@ function calculateJoltageFromIndexList(battery: string, indexList: number[]) {
 	return parseInt(joltageString);
 }
 
-main();
+if (import.meta.main) {
+	main();
+}

@@ -1,6 +1,7 @@
 import * as fs from "fs";
 
 function main() {
+	console.log("Startign Solution for Day 06 of Advent of Code!");
 	const { numbers, cephalopodNumbers, operations } = extractMathProblems("years/2025/day-06/puzzle-input.txt");
 
 	let total = 0;
@@ -130,4 +131,6 @@ function multiply(numbers: number[]): number {
 	return total;
 }
 
-main();
+if (import.meta.main) {
+	main();
+}

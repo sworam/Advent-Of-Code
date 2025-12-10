@@ -1,6 +1,6 @@
 import * as fs from "fs"
 function main() {
-	console.log("Starting Solution for Day 01 of Advant of Code!");
+	console.log("Starting Solution for Day 01 of Advent of Code!");
 	const rotations = readLinesFromFile("years/2025/day-01/puzzle-input.txt");
 	let currentRotation = 50; // starting rotation
 	console.log(`The dial starts by pointing at ${currentRotation}`);
@@ -64,4 +64,6 @@ export function calcZeroPasses(startingRotation: number, direction: string, rota
 	return zeroPasses;
 }
 
-main();
+if (import.meta.main) {
+	main();
+}
