@@ -11,5 +11,5 @@
     "skipLibCheck": true
   },
   "include": ["./years/**/*.ts"],
-  "exclude": ["node_modules, **test.ts"]
+  "exclude": ["node_modules", "./years/**/*.test.ts"]
 }
