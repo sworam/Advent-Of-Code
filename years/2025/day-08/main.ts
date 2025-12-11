@@ -23,7 +23,6 @@ function main() {
 	console.log("Calculating shortest distances...");
 	console.time("CalcShortestDistances");
 	const shortestDistances: DistancePair[] = calcShortestDistances(coords, NUM_PAIRS);
-	console.log(shortestDistances);
 	console.timeEnd("CalcShortestDistances");
 
 	console.log("Calculating coord clusters");
