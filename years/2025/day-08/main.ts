@@ -7,23 +7,44 @@ export type Coord = {
 	idx: number
 }
 
+type DistancePair = [number, number, number];
+
 const NUM_PAIRS = 1000;
 
 function main() {
+	console.time("TotalExecutionTime");
+
 	console.log("Startign Solution for Day 08 of Advent of Code!");
+
+	console.time("GetCoords");
 	const coords: Coord[] = getCoords("years/2025/day-08/puzzle-input.txt");
+	console.timeEnd("GetCoords");
+
 	console.log("Calculating shortest distances...");
-	const shortestDistances: [number, number, number][] = calcShortestDistances(coords, NUM_PAIRS);
+	console.time("CalcShortestDistances");
+	const shortestDistances: DistancePair[] = calcShortestDistances(coords, NUM_PAIRS);
+	console.timeEnd("CalcShortestDistances");
+
 	console.log("Calculating coord clusters");
+	console.time("CalcCoordClusters");
 	const coordClusters: Set<number>[] = calcCoordClusters(shortestDistances);
+	console.timeEnd("CalcCoordClusters");
+
+	console.time("SortClusters");
 	const sortedClusters = sortClustersBySize([...coordClusters]);
+	console.timeEnd("SortClusters");
+
 	console.log(`largestClusterSizes: ${sortedClusters[0].size}, ${sortedClusters[1].size}, ${sortedClusters[2].size}`);
 	console.log(`productOfThreeLargestClusters: ${sortedClusters[0].size * sortedClusters[1].size * sortedClusters[2].size}`);
 
 	// part2
+	console.time("CalcLastPair");
 	const allCoordClusters = addSingletonClusters(coordClusters, coords);
-	const [coord1, coord2]: [Coord, Coord] = calcLastCoordPair(coordClusters, coords);
+	const [coord1, coord2]: [Coord, Coord] = calcLastCoordPair(allCoordClusters, coords);
+	console.timeEnd("CalcLastPair");
+
 	console.log(`result: ${coord1.x}*${coord2.x}=${coord1.x * coord2.x}`);
+	console.timeEnd("TotalExecutionTime");
 }
 
 function getCoords(filePath: string): Coord[] {
@@ -42,8 +63,8 @@ export function euclidDistance(coord1: Coord, coord2: Coord): number {
 	return Math.sqrt(inner);
 }
 
-function calcShortestDistances(coords: Coord[], numPairs: number): [number, number, number][] {
-	let shortestDistances: [number, number, number][] = [];
+function calcShortestDistances(coords: Coord[], numPairs: number): DistancePair[] {
+	let shortestDistances: DistancePair[] = [];
 
 	for (let i = 0; i < coords.length - 1; i++) {
 		const coord1 = coords[i];
@@ -102,7 +123,7 @@ function calcMinDistClusterPair(clusters: Set<number>[], coords: Coord[]): [numb
 	return [idx1, idx2];
 }
 
-function calcDistanceBetweenClusters(cluster1: Set<number>, cluster2: Set<number>, coords: Coord[]): [number, number, number] {
+function calcDistanceBetweenClusters(cluster1: Set<number>, cluster2: Set<number>, coords: Coord[]): DistancePair {
 	let minDistance = Number.MAX_VALUE;
 	let idx1 = -1;
 	let idx2 = -1;
@@ -120,7 +141,7 @@ function calcDistanceBetweenClusters(cluster1: Set<number>, cluster2: Set<number
 	return [minDistance, idx1, idx2];
 }
 
-function pushDistance(pair: [number, number, number], distanceList: [number, number, number][], numPairs: number): [number, number, number][] {
+function pushDistance(pair: DistancePair, distanceList: DistancePair[], numPairs: number): DistancePair[] {
 	distanceList = insertPair(pair, distanceList);
 	if (distanceList.length > numPairs) {
 		return distanceList.slice(0, numPairs);
@@ -128,7 +149,7 @@ function pushDistance(pair: [number, number, number], distanceList: [number, num
 	return distanceList;
 }
 
-function insertPair(pair: [number, number, number], distanceList: [number, number, number][]) {
+function insertPair(pair: DistancePair, distanceList: DistancePair[]) {
 	if (distanceList.length === 0) {
 		return [pair];
 	}
@@ -140,7 +161,7 @@ function insertPair(pair: [number, number, number], distanceList: [number, numbe
 	return [...distanceList, pair];
 }
 
-function calcCoordClusters(shortestDistances: [number, number, number][]): Set<number>[] {
+function calcCoordClusters(shortestDistances: DistancePair[]): Set<number>[] {
 	let coordClusters: Set<number>[] = [];
 
 	for (let i = 0; i < shortestDistances.length; i++) {
