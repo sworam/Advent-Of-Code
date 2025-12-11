@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { DistancePair, MaxHeap } from "./max-heap.js";
 
 export type Coord = {
 	x: number
@@ -7,7 +8,6 @@ export type Coord = {
 	idx: number
 }
 
-type DistancePair = [number, number, number];
 
 const NUM_PAIRS = 1000;
 
@@ -23,6 +23,7 @@ function main() {
 	console.log("Calculating shortest distances...");
 	console.time("CalcShortestDistances");
 	const shortestDistances: DistancePair[] = calcShortestDistances(coords, NUM_PAIRS);
+	console.log(shortestDistances);
 	console.timeEnd("CalcShortestDistances");
 
 	console.log("Calculating coord clusters");
@@ -64,18 +65,18 @@ export function euclidDistance(coord1: Coord, coord2: Coord): number {
 }
 
 function calcShortestDistances(coords: Coord[], numPairs: number): DistancePair[] {
-	let shortestDistances: DistancePair[] = [];
+	const distanceHeap = new MaxHeap(numPairs);
 
 	for (let i = 0; i < coords.length - 1; i++) {
 		const coord1 = coords[i];
 		for (let j = i + 1; j < coords.length; j++) {
 			const coord2 = coords[j];
 			const dist = euclidDistance(coord1, coord2);
-			shortestDistances = pushDistance([dist, i, j], shortestDistances, numPairs);
+			distanceHeap.insert([dist, i, j]);
 		}
 	}
 
-	return shortestDistances;
+	return distanceHeap.getSortedPairs();
 }
 
 function addSingletonClusters(baseClusters: Set<number>[], coords: Coord[]): Set<number>[] {
@@ -139,26 +140,6 @@ function calcDistanceBetweenClusters(cluster1: Set<number>, cluster2: Set<number
 		}
 	}
 	return [minDistance, idx1, idx2];
-}
-
-function pushDistance(pair: DistancePair, distanceList: DistancePair[], numPairs: number): DistancePair[] {
-	distanceList = insertPair(pair, distanceList);
-	if (distanceList.length > numPairs) {
-		return distanceList.slice(0, numPairs);
-	}
-	return distanceList;
-}
-
-function insertPair(pair: DistancePair, distanceList: DistancePair[]) {
-	if (distanceList.length === 0) {
-		return [pair];
-	}
-	for (let i = 0; i < distanceList.length; i++) {
-		if (pair[0] <= distanceList[i][0]) {
-			return [...distanceList.slice(0, i), pair, ...distanceList.slice(i)];
-		}
-	}
-	return [...distanceList, pair];
 }
 
 function calcCoordClusters(shortestDistances: DistancePair[]): Set<number>[] {
