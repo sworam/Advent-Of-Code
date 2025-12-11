@@ -12,15 +12,18 @@ const NUM_PAIRS = 1000;
 function main() {
 	console.log("Startign Solution for Day 08 of Advent of Code!");
 	const coords: Coord[] = getCoords("years/2025/day-08/puzzle-input.txt");
-	//console.log(coords);
-	//const distanceMatrix: number[][] = calcDistMatrix(coords, euclidDistance);
 	console.log("Calculating shortest distances...");
 	const shortestDistances: [number, number, number][] = calcShortestDistances(coords, NUM_PAIRS);
 	console.log("Calculating coord clusters");
 	const coordClusters: Set<number>[] = calcCoordClusters(shortestDistances);
-	const sortedClusters = sortClustersBySize(coordClusters);
+	const sortedClusters = sortClustersBySize([...coordClusters]);
 	console.log(`largestClusterSizes: ${sortedClusters[0].size}, ${sortedClusters[1].size}, ${sortedClusters[2].size}`);
 	console.log(`productOfThreeLargestClusters: ${sortedClusters[0].size * sortedClusters[1].size * sortedClusters[2].size}`);
+
+	// part2
+	const allCoordClusters = addSingletonClusters(coordClusters, coords);
+	const [coord1, coord2]: [Coord, Coord] = calcLastCoordPair(coordClusters, coords);
+	console.log(`result: ${coord1.x}*${coord2.x}=${coord1.x * coord2.x}`);
 }
 
 function getCoords(filePath: string): Coord[] {
@@ -39,20 +42,6 @@ export function euclidDistance(coord1: Coord, coord2: Coord): number {
 	return Math.sqrt(inner);
 }
 
-function calcDistMatrix(coords: Coord[], distFunc: Function): number[][] {
-	const distMatrix: number[][] = [];
-
-	for (let i = 0; i < coords.length; i++) {
-		distMatrix.push([]);
-		const coord1 = coords[i];
-		for (let j = 0; j < coords.length; j++) {
-			const coord2 = coords[j];
-			distMatrix[i].push(distFunc(coord1, coord2));
-		}
-	}
-	return distMatrix;
-}
-
 function calcShortestDistances(coords: Coord[], numPairs: number): [number, number, number][] {
 	let shortestDistances: [number, number, number][] = [];
 
@@ -66,6 +55,69 @@ function calcShortestDistances(coords: Coord[], numPairs: number): [number, numb
 	}
 
 	return shortestDistances;
+}
+
+function addSingletonClusters(baseClusters: Set<number>[], coords: Coord[]): Set<number>[] {
+	for (let i = 0; i < coords.length; i++) {
+		if (!hasCluster(i, baseClusters)) {
+			baseClusters.push(new Set<number>([i]));
+		}
+	}
+	return baseClusters;
+}
+
+function hasCluster(idx: number, clusters: Set<number>[]): boolean {
+	for (const cluster of clusters) {
+		if (cluster.has(idx)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function calcLastCoordPair(clusters: Set<number>[], coords: Coord[]): [Coord, Coord] {
+	while (clusters.length > 2) {
+		const [idx1, idx2] = calcMinDistClusterPair(clusters, coords);
+		clusters = fuzeClusters(clusters, idx1, idx2);
+	}
+	const [_, i1, i2] = calcDistanceBetweenClusters(clusters[0], clusters[1], coords);
+	return [coords[i1], coords[i2]];
+}
+
+function calcMinDistClusterPair(clusters: Set<number>[], coords: Coord[]): [number, number] {
+	let minDist = Number.MAX_VALUE;
+	let idx1 = -1;
+	let idx2 = -1;
+
+	for (let i = 0; i < clusters.length - 1; i++) {
+		for (let j = i + 1; j < clusters.length; j++) {
+			const [dist] = calcDistanceBetweenClusters(clusters[i], clusters[j], coords)
+			if (dist < minDist) {
+				minDist = dist;
+				idx1 = i;
+				idx2 = j;
+			}
+		}
+	}
+	return [idx1, idx2];
+}
+
+function calcDistanceBetweenClusters(cluster1: Set<number>, cluster2: Set<number>, coords: Coord[]): [number, number, number] {
+	let minDistance = Number.MAX_VALUE;
+	let idx1 = -1;
+	let idx2 = -1;
+
+	for (const id1 of cluster1) {
+		for (const id2 of cluster2) {
+			const dist = euclidDistance(coords[id1], coords[id2])
+			if (dist < minDistance) {
+				minDistance = dist;
+				idx1 = id1;
+				idx2 = id2;
+			}
+		}
+	}
+	return [minDistance, idx1, idx2];
 }
 
 function pushDistance(pair: [number, number, number], distanceList: [number, number, number][], numPairs: number): [number, number, number][] {
@@ -127,15 +179,20 @@ function addToClusters(id1: number, id2: number, clusters: Set<number>[]): Set<n
 		return clusters;
 	} else {
 		// both in different clusters -> merge
-		// merge cluster with larger index into cluster with smaller index to prevent index shift.
-		const indexSmall = Math.min(index1, index2);
-		const indexLarge = Math.max(index1, index2);
-		for (const id of clusters[indexLarge]) {
-			clusters[indexSmall].add(id);
-		}
-		clusters.splice(indexLarge, 1);
+		clusters = fuzeClusters(clusters, index1, index2);
 	}
 
+	return clusters;
+}
+
+function fuzeClusters(clusters: Set<number>[], idx1: number, idx2: number): Set<number>[] {
+	// merge cluster with larger index into cluster with smaller index to prevent index shift.
+	const indexSmall = Math.min(idx1, idx2);
+	const indexLarge = Math.max(idx1, idx2);
+	for (const id of clusters[indexLarge]) {
+		clusters[indexSmall].add(id);
+	}
+	clusters.splice(indexLarge, 1);
 	return clusters;
 }
 
