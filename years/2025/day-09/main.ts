@@ -86,54 +86,52 @@ function findLargestInternalRect(polygon: Coord[]): Rectangle {
 	let bestRect: Rectangle = { x: 0, y: 0, width: 0, height: 0, area: 0 };
 
 	const { uniqueXs, uniqueYs } = getUniqueCoords(polygon);
+	const xMap = new Map(uniqueXs.map((val, i) => [val, i]));
+	const yMap = new Map(uniqueYs.map((val, i) => [val, i]));
 	const grid = createBooleanGrid(polygon, uniqueXs, uniqueYs);
 	const rows = grid.length;
 	const cols = grid[0].length;
-	const heights = new Array(cols).fill(0);
 
+	// build summed-area table
+	const sat = Array.from({ length: rows + 1 }, () => new Array(cols + 1).fill(0));
 	for (let r = 0; r < rows; r++) {
-		const cellHeight = uniqueYs[r + 1] - uniqueYs[r];
 		for (let c = 0; c < cols; c++) {
-			// if tile in grid add height
-			heights[c] = grid[r][c] ? (heights[c] + cellHeight) : 0;
+			sat[r + 1][c + 1] = grid[r][c] + sat[r][c + 1] + sat[r + 1][c] - sat[r][c];
 		}
+	}
 
-		const currentMax: Rectangle = getMaxRectangleInHistogram(heights, uniqueXs);
-		if (currentMax.area > maxArea) {
-			maxArea = currentMax.area;
-			bestRect = { ...currentMax, y: uniqueYs[r + 1] - currentMax.height };
+	for (let i = 0; i < polygon.length; i++) {
+		for (let j = 0; j < polygon.length; j++) {
+			const [x1, y1] = polygon[i];
+			const [x2, y2] = polygon[j];
+
+			const xMin = Math.min(x1, x2);
+			const xMax = Math.max(x1, x2);
+			const yMin = Math.min(y1, y2);
+			const yMax = Math.max(y1, y2);
+
+			const cStart = xMap.get(xMin)!;
+			const cEnd = xMap.get(xMax)!;
+			const rStart = yMap.get(yMin)!;
+			const rEnd = yMap.get(yMax)!;
+
+			const expectedCells = (rEnd - rStart) * (cEnd - cStart);
+			if (getAreaSum(rStart, cStart, rEnd - 1, cEnd - 1, sat) === expectedCells) {
+				const width = xMax - xMin + 1;
+				const height = yMax - yMin + 1;
+				const area = width * height;
+				if (area > maxArea) {
+					maxArea = area;
+					bestRect = { x: xMin, y: yMin, width, height, area }
+				}
+			}
 		}
 	}
 	return bestRect;
 }
 
-function getMaxRectangleInHistogram(heights: number[], uniqueXs: number[]): Rectangle {
-	const stack: number[] = [];
-	let maxArea = 0;
-	let best: Rectangle = { x: 0, y: 0, width: 0, height: 0, area: 0 };
-
-	const h = [...heights, 0];
-	for (let i = 0; i <= heights.length; i++) {
-		while (stack.length > 0 && h[stack[stack.length - 1]] >= h[i]) {
-			const idx = stack.pop()!;
-			const rawHeight = h[idx];
-			if (rawHeight === 0) continue;
-
-			const leftIndex = stack.length === 0 ? 0 : stack[stack.length - 1] + 1;
-
-			const rawWidth = uniqueXs[i] - uniqueXs[leftIndex];
-			const height = rawHeight + 1;
-			const width = rawWidth + 1;
-			const area = height * width;
-
-			if (area > maxArea) {
-				maxArea = area;
-				best = { x: uniqueXs[leftIndex], y: 0, width, height, area };
-			}
-		}
-		stack.push(i);
-	}
-	return best;
+function getAreaSum(r1: number, c1: number, r2: number, c2: number, sat: number[][]) {
+	return sat[r2 + 1][c2 + 1] - sat[r1][c2 + 1] - sat[r2 + 1][c1] + sat[r1][c1];
 }
 
 export function isPointInPolygon(p: Coord, polygon: Coord[]): boolean {
