@@ -1,40 +1,35 @@
 import { describe, expect, test } from "vitest";
-import { insideRectangle, Coord } from "./main";
+import { Coord, isPointInPolygon } from "./main";
 
 describe.each([
 	{
-		recti: [0, 0] as Coord,
-		rectj: [10, 10] as Coord,
-		c: [5, 5] as Coord,
+		point: [2, 2] as Coord,
+		polygon: [[0, 0], [4, 0], [4, 4], [0, 4]] as Coord[],
 		expected: true
 	},
 	{
-		recti: [0, 0] as Coord,
-		rectj: [10, 10] as Coord,
-		c: [10, 5] as Coord,
+		point: [0, 0] as Coord,
+		polygon: [[0, 0], [4, 0], [4, 4], [0, 4]] as Coord[],
+		expected: true
+	},
+	{
+		point: [-1, 0] as Coord,
+		polygon: [[0, 0], [4, 0], [4, 4], [0, 4]] as Coord[],
 		expected: false
 	},
 	{
-		recti: [0, 0] as Coord,
-		rectj: [10, 10] as Coord,
-		c: [-1, 5] as Coord,
+		point: [6, 3.1] as Coord,
+		polygon: [[0, 0], [4, 0], [4, 2], [6, 2], [6, 3], [4, 3], [4, 4], [0, 4]] as Coord[],
 		expected: false
 	},
 	{
-		recti: [0, 0] as Coord,
-		rectj: [10, 10] as Coord,
-		c: [11, 5] as Coord,
-		expected: false
+		point: [5.5, 2.5] as Coord,
+		polygon: [[0, 0], [4, 0], [4, 2], [6, 2], [6, 3], [4, 3], [4, 4], [0, 4]] as Coord[],
+		expected: true
 	},
-	{
-		recti: [0, 0] as Coord,
-		rectj: [10, 10] as Coord,
-		c: [10, 10] as Coord,
-		expected: false
-	},
-])("insideRectangle($recti, $rectj, $c)", ({ recti, rectj, c, expected }) => {
+])("isPointInPolygon($point, $polygon)", ({ point, polygon, expected }) => {
 	test(`Expected: ${expected}`, () => {
-		const actual = insideRectangle(recti, rectj, c);
+		const actual = isPointInPolygon(point, polygon);
 		//expect(actual.length).toEqual(expected.length);
 		expect(actual).toEqual(expected);
 	});
